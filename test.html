@@ -194,6 +194,7 @@
 
 <div id="loading">Đang tải dữ liệu...</div>
 <div id="book"></div>
+    
 <div id="card-container"></div>
 
 <div class="nav-control">
@@ -392,6 +393,28 @@
         }
     }
 
+    function goToIndex(index) {
+        currentIndex = index;
+        document.getElementById(`card-${index}`)
+            .scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateDots(index);
+    }
+    
+    function createDots(count) {
+        const dotsContainer = document.getElementById('pageDots');
+        dotsContainer.innerHTML = '';
+        const limit = Math.min(count, 5);
+
+        for (let i = 0; i < limit; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', () => {
+                goToIndex(i);
+            });
+            dotsContainer.appendChild(dot);
+        }
+    }
+
     function updateDots(index) {
         const dots = document.querySelectorAll('.dot');
         if (dots.length === 0) return;
@@ -414,22 +437,38 @@
         }
     }
 
-    document.getElementById('book').addEventListener('scroll', () => {
-        const index = Math.round(document.getElementById('book').scrollTop / window.innerHeight);
-        if (index !== currentIndex) {
-            currentIndex = index;
-            updateDots(currentIndex);
-        }
-    });
-
     function speak(text) {
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'zh-CN';
         window.speechSynthesis.speak(utter);
     }
 
+    const book = document.getElementById('book');
+
+    function getCards() {
+        return document.querySelectorAll('.flashcard');
+    }
+
+    book.addEventListener('scroll', () => {
+        const scrollTop = book.scrollTop;
+
+        let closestIndex = 0;
+        let minDiff = Infinity;
+
+        getCards().forEach((card, i) => {
+            const diff = Math.abs(card.offsetTop - scrollTop);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        });
+
+        if (closestIndex !== currentIndex) {
+            currentIndex = closestIndex;
+            updateDots(currentIndex);
+        }
+    });
     init();
 </script>
 </body>
 </html>
-

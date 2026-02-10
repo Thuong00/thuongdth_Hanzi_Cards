@@ -24,18 +24,15 @@
         }
 
         #book {
-            height: 100svh;             
-            height: 100dvh;              /* fallback cho browser mới */
+            height: 100vh;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
         }
-        
+
         .flashcard {
             scroll-snap-align: start;
-            min-height: 100svh;
-            min-height: 100dvh;
+            min-height: 100vh;
             width: 100%;
             padding: 20px;
             padding-bottom: 120px; 
@@ -211,8 +208,6 @@
 
     let currentIndex = 0;
     let totalItems = 0;
-
-    let isProgrammaticScroll = false;
 
     function init() {
         Papa.parse(sheetUrl, {
@@ -399,20 +394,10 @@
     }
 
     function goToIndex(index) {
-        isProgrammaticScroll = true;
-
-        const book = document.getElementById('book');
-        book.style.scrollSnapType = 'none';
-
+        currentIndex = index;
         document.getElementById(`card-${index}`)
             .scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        setTimeout(() => {
-            book.style.scrollSnapType = 'y mandatory';
-            isProgrammaticScroll = false;
-            currentIndex = index;
-            updateDots(index);
-        }, 500);
+        updateDots(index);
     }
     
     function createDots(count) {
@@ -465,7 +450,6 @@
     }
 
     book.addEventListener('scroll', () => {
-        if (isProgrammaticScroll) return;
         const scrollTop = book.scrollTop;
 
         let closestIndex = 0;

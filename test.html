@@ -28,7 +28,8 @@
             height: 100dvh;              /* fallback cho browser mới */
             position: relative;
             z-index: 1;
-            overflow-y: scroll;
+            overflow-y: auto;
+            /* overflow-y: scroll; */
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
@@ -45,7 +46,6 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            touch-action: pan-y;
         }
 
         /* Header: Khu vực chữ chính */
@@ -142,9 +142,7 @@
             position: fixed;
             bottom: 30px;
             left: 50%;
-            transform: translateX(-50%) translateZ(0);
-            will-change: transform;
-            z-index: 2147483647; /* max int */
+            transform: translateX(-50%);
             pointer-events: auto;
             background: white;
             padding: 10px 20px;
@@ -407,7 +405,6 @@
         isProgrammaticScroll = true;
 
         const book = document.getElementById('book');
-        book.style.scrollSnapType = 'none';
 
         document.getElementById(`card-${index}`)
             .scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -493,6 +490,7 @@
 </script>
 </body>
 </html>
+
 
 
 

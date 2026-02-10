@@ -191,7 +191,7 @@
 
     function nl2br(text) {
         if (!text) return '';
-        return text.replace(/\n/g, '<br>');
+        return text.replace(/\\n/g, '<br>');
     }
     function render(data) {
         const book = document.getElementById('book');
@@ -339,6 +339,7 @@
 </script>
 </body>
 </html>
+
 
 
 

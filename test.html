@@ -188,6 +188,7 @@
 
 <div id="loading">Đang tải dữ liệu...</div>
 <div id="book"></div>
+<div id="card-container"></div>
 
 <div class="nav-control">
     <button class="nav-btn" onclick="prevPage()">←</button>
@@ -207,13 +208,20 @@
             header: true,
             skipEmptyLines: true,
             complete: function(results) {
+                const container = document.getElementById('card-container');
+                
                 const data = results.data.filter(item => 
                     item['Status'] && item['Status'].trim() === 'Ready'
                 );
                 if (data.length === 0) {
-                    container.innerHTML = '<p>Hiện không có từ nào đã sẵn sàng để học</p>';
+                    container.innerHTML = `
+                        <div id="loading">
+                            Hiện không có từ nào đã sẵn sàng để học
+                        </div>
+                    `;
                     return;
                 }
+                
                 totalItems = data.length;
                 render(data);
                 createDots(totalItems);
@@ -414,6 +422,7 @@
 </script>
 </body>
 </html>
+
 
 
 

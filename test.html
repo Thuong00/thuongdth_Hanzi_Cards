@@ -1,173 +1,315 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <link rel="preconnect" href="https://raw.githubusercontent.com">
+    <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Từ Điển Hán Ngữ Flashcard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        :root { --primary: #00a86b; --secondary: #1a5fb4; --bg: #f2f2f7; --text: #2c3e50; }
-        body { margin: 0; font-family: sans-serif; background-color: var(--bg); color: var(--text); overflow: hidden; }
-        
-        #book { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
-        .flashcard { scroll-snap-align: start; min-height: 100vh; width: 100%; padding: 20px 20px 120px 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; }
+        :root {
+            --primary: #00a86b;
+            --secondary: #1a5fb4;
+            --bg: #f2f2f7;
+            --text: #2c3e50;
+        }
 
-        /* Giao diện chính */
-        .header-section { background: white; border: 2px solid var(--primary); border-radius: 20px; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        #book {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .flashcard {
+            scroll-snap-align: start;
+            min-height: 100vh;
+            width: 100%;
+            padding: 20px;
+            padding-bottom: 120px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Header: Khu vực chữ chính */
+        .header-section {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
         .big-char { font-size: 80px; font-weight: bold; margin: 0; line-height: 1; }
         .info-top { text-align: right; flex: 1; }
+        .pinyin-box { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+        .pinyin-tag { background: #34495e; color: white; padding: 2px 10px; border-radius: 10px; font-size: 11px; }
         .pinyin-text { font-size: 24px; color: var(--primary); font-weight: bold; }
-        .han-viet { font-size: 20px; color: var(--secondary); font-weight: bold; }
+        .han-viet { font-size: 20px; color: var(--secondary); font-weight: bold; margin: 5px 0; }
+        .meaning-small { font-size: 13px; color: #666; margin: 2px 0; }
 
-        .section-title { display: flex; align-items: center; justify-content: space-between; font-weight: bold; color: var(--secondary); margin-top: 5px; }
-        .component-box { background: white; border-left: 6px solid #ff9f43; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* Tiêu đề các mục */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-top: 5px;
+        }
 
-        /* Khu vực SVG Thứ tự nét */
-        .stroke-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: white; padding: 10px; border-radius: 15px; min-height: 100px; }
-        .stroke-container { position: relative; width: 100%; aspect-ratio: 1/1; border: 1px solid #f9f9f9; display: flex; align-items: center; justify-content: center; }
-        .stroke-container svg { width: 90%; height: 90%; transform: scaleY(-1); } /* Makemeahanzi SVG thường bị ngược trục Y */
-        
-        /* Hiệu ứng vẽ nét */
-        .stroke-path { stroke: #333; stroke-width: 30; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        /* Cấu tạo bộ thủ */
+        .component-box {
+            background: white;
+            border-left: 6px solid #ff9f43;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
 
-        /* Nút Replay */
-        .btn-replay { background: var(--secondary); color: white; border: none; padding: 4px 12px; border-radius: 15px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .btn-replay:active { opacity: 0.7; }
+        .total-strokes {
+            background: #e1f5fe;
+            color: var(--primary);
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-        /* Slider Navigation */
-        .nav-control { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 20px; border-radius: 40px; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; }
-        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; }
+        /* Mẹo nhớ & Ảnh */
+        .mnemonic-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 12px;
+        }
+
+        .mnemonic-text {
+            background: #fff9db;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .mnemonic-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 15px;
+            background: #eee;
+        }
+
+        /* Lưới hiển thị SVG thứ tự nét (2 cột) */
+        .stroke-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .stroke-item {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: contain;
+            border: 1px solid #f9f9f9;
+        }
+
+        /* Thanh điều hướng Slider */
+        .nav-control {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 9999;
+        }
+
+        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #333; }
+        .dots { display: flex; gap: 6px; }
         .dot { width: 8px; height: 8px; background: #ddd; border-radius: 50%; transition: 0.3s; }
         .dot.active { background: var(--primary); width: 22px; border-radius: 10px; }
+
+        .speak-btn { background: none; border: 1px solid #eee; border-radius: 50%; cursor: pointer; }
+        #loading { position: fixed; inset: 0; background: white; display: flex; justify-content: center; align-items: center; z-index: 10000; }
     </style>
 </head>
 <body>
 
+<div id="loading">Đang tải dữ liệu...</div>
 <div id="book"></div>
 
 <div class="nav-control">
     <button class="nav-btn" onclick="prevPage()">←</button>
-    <div id="pageDots" class="dots" style="display:flex; gap:6px;"></div>
+    <div id="pageDots" class="dots"></div>
     <button class="nav-btn" onclick="nextPage()">→</button>
 </div>
 
 <script>
+    // 1. Dán Link CSV của bạn vào đây
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZTDVNcUri3PK3TkRuafajK9Vj8pyPKF79H6JYCzu1l56OM-xbgO7bWdcR84o_FJ8FUXuNe0ALyd7r/pub?output=csv';
+
     let currentIndex = 0;
     let totalItems = 0;
-    const svgCache = new Map(); // Bộ nhớ đệm để load cực nhanh
-
-    async function fetchSVG(url) {
-        if (svgCache.has(url)) return svgCache.get(url);
-        try {
-            const res = await fetch(url);
-            const text = await res.text();
-            svgCache.set(url, text);
-            return text;
-        } catch (e) { return null; }
-    }
-
-    async function replayStrokes(containerId, linksStr) {
-        const links = linksStr.split(', ');
-        const grid = document.getElementById(containerId);
-        grid.innerHTML = ''; // Xóa đi để chạy lại
-
-        for (const link of links) {
-            const svgText = await fetchSVG(link.trim());
-            if (svgText) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'stroke-container';
-                wrapper.innerHTML = svgText;
-                
-                // Hiệu ứng animation đơn giản cho nét vẽ
-                const paths = wrapper.querySelectorAll('path');
-                paths.forEach((path, i) => {
-                    const length = path.getTotalLength();
-                    path.style.strokeDasharray = length;
-                    path.style.strokeDashoffset = length;
-                    path.style.transition = `stroke-dashoffset 0.5s ease-in-out ${i * 0.5}s`;
-                    setTimeout(() => { path.style.strokeDashoffset = '0'; }, 100);
-                });
-                
-                grid.appendChild(wrapper);
-            }
-        }
-    }
 
     function init() {
         Papa.parse(sheetUrl, {
-            download: true, header: true, skipEmptyLines: true,
+            download: true,
+            header: true,
+            skipEmptyLines: true,
             complete: function(results) {
-                totalItems = results.data.length;
-                render(results.data);
+                const data = results.data;
+                totalItems = data.length;
+                render(data);
                 createDots(totalItems);
+                lazyLoadSVG();
+                document.getElementById('loading').style.display = 'none';
             }
         });
     }
 
     function render(data) {
         const book = document.getElementById('book');
-        book.innerHTML = data.map((item, index) => `
+        book.innerHTML = data.map((item, index) => {
+            
+            // Xử lý tách link SVG (Thứ tự nét)
+            const strokeLinks = item['GIF Thứ tự nét'] ? item['GIF Thứ tự nét'].split(', ') : [];
+            const strokesHtml = strokeLinks.length > 0 
+                ? strokeLinks.map(link => `<img class="stroke-item" data-src="${link.trim()}" loading="lazy">`).join('')
+                : '<p style="grid-column: span 2; font-size:12px; color:#999; text-align:center;">Đang cập nhật...</p>';
+
+            return `
             <div class="flashcard" id="card-${index}">
                 <div class="header-section">
-                    <h1 class="big-char">${item['Từ tiếng Trung'] || ''}</h1>
+                    <h1 class="big-char">${item['Từ tiếng Trung'] || '？'}</h1>
                     <div class="info-top">
-                        <div class="pinyin-text">${item['Pinyin'] || ''} <button style="border:none;background:none;cursor:pointer" onclick="speak('${item['Từ tiếng Trung']}')">🔊</button></div>
+                        <div class="pinyin-box">
+                            <span class="pinyin-tag">Pinyin</span>
+                            <span class="pinyin-text">${item['Pinyin'] || ''}</span>
+                            <button class="speak-btn" onclick="speak('${item['Từ tiếng Trung']}')">🔊</button>
+                        </div>
                         <div class="han-viet">Hán Việt: ${item['Nghĩa tiếng Việt'] || ''}</div>
+                        <p class="meaning-small">● Việt: ${item['Nghĩa tiếng Việt'] || ''}</p>
+                        <p class="meaning-small">● English: ${item['Nghĩa tiếng Anh'] || ''}</p>
                     </div>
                 </div>
 
-                <div class="section-title">
-                    <span>✍️ Thứ tự nét viết</span>
-                    <button class="btn-replay" onclick="replayStrokes('grid-${index}', '${item['GIF Thứ tự nét']}')">🔄 Xem lại</button>
-                </div>
-                <div class="stroke-grid" id="grid-${index}">
-                    <p style="grid-column: span 2; font-size:12px; color:#999; text-align:center;">Bấm "Xem lại" để tải nét vẽ</p>
-                </div>
-
-                <div class="section-title">👣 Thành phần cấu tạo</div>
+                <div class="section-title">👣 Thành phần cấu tạo (Bộ thủ)</div>
                 <div class="component-box">
                     <strong>${item['Thành phần cấu tạo (Bộ thủ)'] || ''}</strong>
                     <div style="font-size:13px; color:#666; margin-top:5px;">${item['Phân tích kỹ hơn cấu tạo'] || ''}</div>
                 </div>
 
-                <div style="background:#e1f5fe; color:var(--primary); text-align:center; padding:10px; border-radius:10px; font-weight:bold;">TỔNG CỘNG: ${item['Tổng số nét'] || '0'} NÉT</div>
+                <div class="total-strokes">TỔNG CỘNG: ${item['Tổng số nét'] || '0'} NÉT</div>
+
+                <div class="mnemonic-grid">
+                    <div class="mnemonic-text">
+                        <strong style="color:#f39c12">💡 Mẹo ghi nhớ</strong><br>
+                        ${item['Mẹo nhớ'] || ''}
+                    </div>
+                    <img class="mnemonic-img" src="${item['Link ảnh minh họa mẹo nhớ'] || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                </div>
+
+                <div class="section-title">✍️ Thứ tự nét viết
+                    <button class="nav-btn" onclick="resetStrokes(${index})">🔄 Xem lại</button>
+                </div>
                 
+                <div class="stroke-grid" id="stroke-grid-${index}">
+                    ${strokesHtml}
+                </div>
+
+                <div class="section-title">📚 Từ vựng mở rộng</div>
                 <div style="background:white; padding:15px; border-radius:15px; font-size:13px; line-height:1.6">
-                    <strong style="color:#f39c12">💡 Mẹo ghi nhớ:</strong> ${item['Mẹo nhớ'] || ''}
+                    ${item['Ứng dụng - Từ vựng mở rộng'] || 'Chưa có dữ liệu.'}
                 </div>
             </div>
-        `).join('');
-
-        // Tự động chạy nét cho trang đầu tiên
-        if (data[0]) replayStrokes('grid-0', data[0]['GIF Thứ tự nét']);
+            `;
+        }).join('');
     }
 
-    // Các hàm Navigation (Dots, Next, Prev) giữ nguyên như bản trước...
+    function lazyLoadSVG() {
+        const imgs = document.querySelectorAll('img[data-src]');
+
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            });
+        }, { rootMargin: '200px' });
+        imgs.forEach(img => observer.observe(img));
+    }
+
+    function resetStrokes(cardIndex) {
+        const grid = document.getElementById(`stroke-grid-${cardIndex}`);
+        if (!grid) return;
+
+        const imgs = grid.querySelectorAll('img');
+        imgs.forEach(img => {
+            const src = img.src;
+            img.src = '';
+            // force reflow
+            void img.offsetHeight;
+            img.src = src;
+        });
+    }
+    
     function createDots(count) {
-        const container = document.getElementById('pageDots');
-        for (let i = 0; i < Math.min(count, 5); i++) {
-            const d = document.createElement('div');
-            d.className = 'dot' + (i === 0 ? ' active' : '');
-            container.appendChild(d);
+        const dotsContainer = document.getElementById('pageDots');
+        dotsContainer.innerHTML = '';
+        const limit = Math.min(count, 5); // Chỉ hiện tối đa 5 chấm để tránh tràn màn hình
+        for (let i = 0; i < limit; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dotsContainer.appendChild(dot);
         }
     }
 
     function updateDots(index) {
         const dots = document.querySelectorAll('.dot');
-        dots.forEach((d, i) => d.classList.toggle('active', i === (index % dots.length)));
+        if (dots.length === 0) return;
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === (index % dots.length));
+        });
     }
 
-    function nextPage() { if (currentIndex < totalItems - 1) { currentIndex++; scrollToIndex(); } }
-    function prevPage() { if (currentIndex > 0) { currentIndex--; scrollToIndex(); } }
-    
-    function scrollToIndex() {
-        const card = document.getElementById(`card-${currentIndex}`);
-        card.scrollIntoView();
-        // Khi chuyển trang, tự động load/chạy nét của trang đó
-        const gridId = `grid-${currentIndex}`;
-        const links = document.querySelector(`#card-${currentIndex} .btn-replay`).getAttribute('onclick').match(/'([^']+)'/g)[1].replace(/'/g, '');
-        replayStrokes(gridId, links);
+    function nextPage() {
+        if (currentIndex < totalItems - 1) {
+            currentIndex++;
+            document.getElementById(`card-${currentIndex}`).scrollIntoView();
+        }
+    }
+
+    function prevPage() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            document.getElementById(`card-${currentIndex}`).scrollIntoView();
+        }
     }
 
     document.getElementById('book').addEventListener('scroll', () => {

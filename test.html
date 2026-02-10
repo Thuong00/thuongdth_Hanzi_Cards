@@ -27,9 +27,7 @@
             height: 100vh;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
-            /* scroll-behavior: smooth; */
-            scroll-behavior: auto !important;
-            -webkit-overflow-scrolling: touch; /* Giúp cuộn mượt hơn trên iOS/Android */
+            scroll-behavior: smooth;
         }
 
         .flashcard {
@@ -183,11 +181,7 @@
             padding: 24px;
             font-style: italic;
         }
-        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #333; 
-                 /* Thêm dòng này để nút bấm nhạy hơn trên Android */
-                touch-action: manipulation; 
-                cursor: pointer;
-                padding: 15px; /* Tăng diện tích bấm */}
+        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #333; }
         .dots { display: flex; gap: 6px; }
         .dot { width: 8px; height: 8px; background: #ddd; border-radius: 50%; transition: 0.3s; }
         .dot.active { background: var(--primary); width: 22px; border-radius: 10px; }
@@ -204,9 +198,9 @@
 <div id="card-container"></div>
 
 <div class="nav-control">
-    <button class="nav-btn" onclick="prevPage()">←</button>
+    <button class="nav-btn" onpointerdown="prevPage()">←</button>
     <div id="pageDots" class="dots"></div>
-    <button class="nav-btn" onclick="nextPage()">→</button>
+    <button class="nav-btn" onpointerdown="nextPage()">→</button>
 </div>
 
 <script>
@@ -399,39 +393,11 @@
         }
     }
 
-    let isScrolling = false; // Biến khóa bảo vệ
-
     function goToIndex(index) {
-        if (isScrolling) return; // Nếu đang cuộn thì không nhận lệnh mới
-    
-        isScrolling = true;
         currentIndex = index;
-    
-        const targetCard = document.getElementById(`card-${index}`);
-        if (targetCard) {
-            // Thực hiện cuộn mượt bằng JS thay vì CSS
-            targetCard.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
-            });
-
-            // Sau 500ms (thời gian hiệu ứng lật trang) mới cho phép bấm tiếp
-            setTimeout(() => {
-                isScrolling = false;
-            }, 500);
-        }
-    }
-
-    function nextPage() {
-        if (currentIndex < totalItems - 1) {
-            goToIndex(currentIndex + 1);
-        }
-    }
-
-    function prevPage() {
-        if (currentIndex > 0) {
-            goToIndex(currentIndex - 1);
-        }
+        document.getElementById(`card-${index}`)
+            .scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateDots(index);
     }
     
     function createDots(count) {
@@ -457,6 +423,20 @@
         });
     }
 
+    function nextPage() {
+        if (currentIndex < totalItems - 1) {
+            currentIndex++;
+            document.getElementById(`card-${currentIndex}`).scrollIntoView();
+        }
+    }
+
+    function prevPage() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            document.getElementById(`card-${currentIndex}`).scrollIntoView();
+        }
+    }
+
     function speak(text) {
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'zh-CN';
@@ -469,16 +449,13 @@
         return document.querySelectorAll('.flashcard');
     }
 
-    // Cập nhật sự kiện scroll để không bị nhảy dots khi đang bấm nút
     book.addEventListener('scroll', () => {
-        if (isScrolling) return; // Nếu đang dùng nút bấm thì không tự tính toán lại vị trí
-
         const scrollTop = book.scrollTop;
+
         let closestIndex = 0;
         let minDiff = Infinity;
 
-        const cards = document.querySelectorAll('.flashcard');
-        cards.forEach((card, i) => {
+        getCards().forEach((card, i) => {
             const diff = Math.abs(card.offsetTop - scrollTop);
             if (diff < minDiff) {
                 minDiff = diff;
@@ -491,10 +468,7 @@
             updateDots(currentIndex);
         }
     });
-    
     init();
 </script>
 </body>
 </html>
-
-

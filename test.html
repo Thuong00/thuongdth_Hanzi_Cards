@@ -147,6 +147,34 @@
             z-index: 9999;
         }
 
+        .ext-vocab-item {
+            background: #f9fafb;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .ext-han {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .ext-pinyin {
+            font-size: 14px;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .ext-vi {
+            font-size: 13px;
+            color: #555;
+            margin-top: 2px;
+        }
+        
         .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #333; }
         .dots { display: flex; gap: 6px; }
         .dot { width: 8px; height: 8px; background: #ddd; border-radius: 50%; transition: 0.3s; }
@@ -196,12 +224,26 @@
     function render(data) {
         const book = document.getElementById('book');
         book.innerHTML = data.map((item, index) => {
-            
             // Xử lý tách link SVG (Thứ tự nét)
             const strokeLinks = item['GIF Thứ tự nét'] ? item['GIF Thứ tự nét'].split(', ') : [];
             const strokesHtml = strokeLinks.length > 0 
                 ? strokeLinks.map(link => `<img class="stroke-item" data-src="${link.trim()}" loading="lazy">`).join('')
                 : '<p style="grid-column: span 2; font-size:12px; color:#999; text-align:center;">Đang cập nhật...</p>';
+            // Xử lý tách phần từ vựng mở rộng
+            const vocabList = parseExtendedVocab(item['Ứng dụng - Từ vựng mở rộng']);
+
+            const vocabHtml = vocabList.length
+                ? vocabList.map(v => `
+                    <div class="ext-vocab-item">
+                        <div class="ext-han">
+                            ${v.han}
+                            <button class="speak-btn" onclick="speak('${v.han}')">🔊</button>
+                        </div>
+                    <div class="ext-pinyin">${v.pinyin}</div>
+                    <div class="ext-vi">${v.vi}</div>
+                    </div>
+                `).join('')
+                : '<div style="font-size:12px;color:#999">Chưa có dữ liệu.</div>';
 
             return `
             <div class="flashcard" id="card-${index}">
@@ -232,7 +274,7 @@
                 <div class="mnemonic-grid">
                     <div class="mnemonic-text">
                         <strong style="color:#f39c12">💡 Mẹo ghi nhớ</strong><br>
-                        ${item['Mẹo nhớ'] || ''}
+                        ${nl2br(item['Mẹo nhớ']) || ''}
                     </div>
                     <img class="mnemonic-img" src="${item['Link ảnh minh họa mẹo nhớ'] || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
                 </div>
@@ -246,14 +288,37 @@
                 </div>
 
                 <div class="section-title">📚 Từ vựng mở rộng</div>
-                <div style="background:white; padding:15px; border-radius:15px; font-size:13px; line-height:1.6">
-                    ${item['Ứng dụng - Từ vựng mở rộng'] || 'Chưa có dữ liệu.'}
+                <div style="background:white; padding:15px; border-radius:15px;">
+                    ${vocabHtml}
                 </div>
             </div>
             `;
         }).join('');
     }
 
+    function parseExtendedVocab(text) {
+        if (!text) return [];
+
+        return text
+            // bắt cả \n thật và \\n
+            .split(/\\n|\r?\n/)
+            .map(line => line.trim())
+            .filter(Boolean)
+            .map(line => {
+                // bỏ số thứ tự "1. "
+                line = line.replace(/^\d+\.\s*/, '');
+
+                // tách theo " - "
+                const parts = line.split(' - ').map(p => p.trim());
+
+                return {
+                    han: parts[0] || '',
+                    pinyin: parts[1] || '',
+                    vi: parts[2] || ''
+                };
+            });
+}
+    
     function lazyLoadSVG() {
         const imgs = document.querySelectorAll('img[data-src]');
 
@@ -339,6 +404,7 @@
 </script>
 </body>
 </html>
+
 
 
 

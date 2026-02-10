@@ -269,13 +269,17 @@
         const grid = document.getElementById(`stroke-grid-${cardIndex}`);
         if (!grid) return;
 
-        const imgs = grid.querySelectorAll('img');
+        //CHỈ chọn SVG stroke
+        const imgs = grid.querySelectorAll('img.stroke-item');
+
         imgs.forEach(img => {
-            const src = img.src;
-            img.src = '';
-            // force reflow
-            void img.offsetHeight;
-            img.src = src;
+            const url = img.src;
+            img.removeAttribute('src');
+
+            requestAnimationFrame(() => {
+                // bust cache để SVG chạy lại animation
+                img.src = url.split('?')[0] + '?t=' + Date.now();
+            });
         });
     }
     
@@ -330,3 +334,4 @@
 </script>
 </body>
 </html>
+

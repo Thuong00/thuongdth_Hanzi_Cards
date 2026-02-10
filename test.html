@@ -3,74 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Học Tiếng Trung - Database Sheets</title>
+    <title>Từ điển Hán ngữ Flashcard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
-        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .hanzi { font-size: 2.5em; color: #e74c3c; }
-        .label { font-weight: bold; color: #555; font-size: 0.8em; margin-top: 8px; display: block; }
-        .search-container { position: sticky; top: 0; background: #f0f2f5; padding: 10px 0; z-index: 10; }
-        input { width: 100%; padding: 12px; border-radius: 20px; border: 1px solid #ddd; box-sizing: border-box; }
-        #status { text-align: center; color: #666; padding: 20px; }
-        img { max-width: 100%; border-radius: 5px; margin-top: 10px; }
+        :root {
+            --primary-color: #00a86b;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        /* Hiệu ứng mỗi từ 1 trang */
+        .page-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+        }
+
+        .flashcard {
+            scroll-snap-align: start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 2px solid #eee;
+        }
+
+        /* Phần đầu: Chữ Hán & Pinyin */
+        .header-section {
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+        }
+
+        .big-char { font-size: 80px; font-weight: bold; margin: 0; }
+        .info-top { text-align: right; }
+        .pinyin-tag { background: #2c3e50; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 14px; }
+        .pinyin-text { font-size: 24px; color: var(--primary-color); font-weight: bold; margin: 5px 0; }
+        .han-viet { font-size: 20px; font-weight: bold; color: #1a5fb4; }
+
+        /* Thành phần cấu tạo */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1a5fb4;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+        }
+
+        .component-box {
+            background: #fff;
+            border-left: 5px solid #ff9f43;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .total-strokes {
+            background: #e1f5fe;
+            color: var(--primary-color);
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Mẹo nhớ & Ảnh */
+        .mnemonic-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .mnemonic-text {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 10px;
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .mnemonic-img, .gif-stroke {
+            width: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        /* Nút nghe */
+        .btn-audio {
+            background: none; border: 1px solid #ccc; padding: 5px 10px; border-radius: 5px; cursor: pointer;
+        }
+
+        #status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); }
     </style>
 </head>
 <body>
 
-<div class="search-container">
-    <input type="text" id="search" placeholder="Tìm kiếm từ vựng..." onkeyup="search()">
-</div>
-
-<div id="status">Đang nạp dữ liệu từ Google...</div>
-<div id="list"></div>
+<div id="status">Đang tải dữ liệu...</div>
+<div id="book" class="page-container"></div>
 
 <script>
-    // 1. THAY LINK CSV CỦA BẠN VÀO ĐÂY
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRZTDVNcUri3PK3TkRuafajK9Vj8pyPKF79H6JYCzu1l56OM-xbgO7bWdcR84o_FJ8FUXuNe0ALyd7r/pub?output=csv';
 
-    let db = [];
-
-    function init() {
-        Papa.parse(sheetUrl, {
-            download: true,
-            header: true, // Tự động lấy dòng đầu làm tên cột
-            skipEmptyLines: true,
-            complete: function(results) {
-                console.log("Dữ liệu tải về:", results.data);
-                db = results.data;
-                render(db);
-                document.getElementById('status').style.display = 'none';
-            },
-            error: function(err) {
-                document.getElementById('status').innerHTML = 
-                    "<b style='color:red'>LỖI KẾT NỐI:</b><br>Trình duyệt chặn file cục bộ hoặc link sai.<br><br>" +
-                    "Hãy thử: <b>Tải file này lên Tiiny.host</b> để chạy!";
-            }
-        });
-    }
+    Papa.parse(sheetUrl, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            render(results.data);
+            document.getElementById('status').style.display = 'none';
+        }
+    });
 
     function render(data) {
-        const container = document.getElementById('list');
-        // Lưu ý: Tên các cột (item.Status, item.Pinyin...) phải khớp 100% với tên cột trên Google Sheets của bạn
-        container.innerHTML = data.map(item => `
-            <div class="card">
-                <div style="float:right; font-size:12px; color:gray">${item['Status'] || ''}</div>
-                <div class="hanzi">${item['Từ tiếng Trung'] || ''}</div>
-                <div><b>${item['Pinyin'] || ''}</b></div>
-                
-                <span class="label">Nghĩa:</span>
-                <div>VI: ${item['Nghĩa tiếng Việt'] || ''} | EN: ${item['Nghĩa tiếng Anh'] || ''}</div>
-                
-                <span class="label">Cấu tạo & Bộ thủ:</span>
-                <div>${item['Thành phần cấu tạo (Bộ thủ)'] || ''} - ${item['Phân tích kỹ hơn cấu tạo'] || ''}</div>
+        const book = document.getElementById('book');
+        book.innerHTML = data.map(item => `
+            <div class="flashcard">
+                <div class="header-section">
+                    <div class="big-char">${item['Từ tiếng Trung'] || '？'}</div>
+                    <div class="info-top">
+                        <span class="pinyin-tag">Pinyin:</span>
+                        <div class="pinyin-text">${item['Pinyin'] || ''} <button class="btn-audio" onclick="speak('${item['Từ tiếng Trung']}')">🔊</button></div>
+                        <div class="han-viet">Hán Việt: ${item['Nghĩa tiếng Việt'] || ''}</div>
+                        <div style="font-size:13px; color:#666">● Tiếng Việt: ${item['Nghĩa tiếng Việt'] || ''}</div>
+                        <div style="font-size:13px; color:#666">● English: ${item['Nghĩa tiếng Anh'] || ''}</div>
+                    </div>
+                </div>
 
-                <span class="label">Mẹo nhớ:</span>
-                <div>${item['Mẹo nhớ'] || ''}</div>
+                <div class="section-title">👣 Thành phần cấu tạo (Bộ thủ)</div>
+                <div class="component-box">
+                    ${item['Thành phần cấu tạo (Bộ thủ)'] || 'Đang cập nhật...'}
+                    <p style="font-size:13px; color:#666; margin-top:5px;">${item['Phân tích kỹ hơn cấu tạo'] || ''}</p>
+                </div>
                 
-                ${item['Link ảnh minh họa mẹo nhớ'] ? `<img src="${item['Link ảnh minh họa mẹo nhớ']}">` : ''}
-                
-                <button onclick="speak('${item['Từ tiếng Trung']}')" style="margin-top:10px">🔊 Nghe</button>
+                <div class="total-strokes">TỔNG CỘNG: ${item['Tổng số nét'] || '0'} NÉT</div>
+
+                <div class="mnemonic-container">
+                    <div class="mnemonic-text">
+                        <b style="color:#f39c12">💡 Mẹo ghi nhớ</b><br><br>
+                        "${item['Mẹo nhớ'] || 'Chưa có mẹo nhớ.'}"
+                    </div>
+                    <img class="mnemonic-img" src="${item['Link ảnh minh họa mẹo nhớ'] || 'https://via.placeholder.com/150'}" alt="Mẹo">
+                </div>
+
+                <div class="section-title">✍️ Thứ tự nét viết</div>
+                <div style="text-align:center">
+                    <img class="gif-stroke" src="${item['GIF Thứ tự nét'] || ''}" style="width:120px; height:120px;">
+                </div>
+
+                <div class="section-title">💡 Từ vựng mở rộng</div>
+                <div style="background:#fff; padding:10px; border-radius:10px; font-size:14px;">
+                    ${item['Ứng dụng - Từ vựng mở rộng'] || 'Nội dung đang được soạn thảo...'}
+                </div>
             </div>
         `).join('');
     }
@@ -80,16 +180,7 @@
         utter.lang = 'zh-CN';
         window.speechSynthesis.speak(utter);
     }
-
-    function search() {
-        const query = document.getElementById('search').value.toLowerCase();
-        const filtered = db.filter(i => 
-            Object.values(i).some(val => String(val).toLowerCase().includes(query))
-        );
-        render(filtered);
-    }
-
-    init();
 </script>
+
 </body>
 </html>

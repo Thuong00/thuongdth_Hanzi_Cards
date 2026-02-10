@@ -54,6 +54,12 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
+        .component-box strong, 
+        .component-box div, 
+        .mnemonic-text, 
+        .extension-box {
+            white-space: pre-line;
+        }
         .big-char { font-size: 80px; font-weight: bold; margin: 0; line-height: 1; }
         .info-top { text-align: right; flex: 1; }
         .pinyin-box { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
@@ -210,7 +216,7 @@
                             <span class="pinyin-text">${item['Pinyin'] || ''}</span>
                             <button class="speak-btn" onclick="speak('${item['Từ tiếng Trung']}')">🔊</button>
                         </div>
-                        <div class="han-viet">Hán Việt: ${item['Nghĩa tiếng Việt'] || ''}</div>
+                        <div class="han-viet">Hán Việt: ${item['Nghĩa Hán Việt'] || ''}</div>
                         <p class="meaning-small">● Việt: ${item['Nghĩa tiếng Việt'] || ''}</p>
                         <p class="meaning-small">● English: ${item['Nghĩa tiếng Anh'] || ''}</p>
                     </div>
@@ -219,9 +225,9 @@
                 <div class="section-title">👣 Thành phần cấu tạo (Bộ thủ)</div>
                 <div class="component-box">
                     <strong>${item['Thành phần cấu tạo (Bộ thủ)'] || ''}</strong>
-                    <div style="font-size:13px; color:#666; margin-top:5px;">${item['Phân tích kỹ hơn cấu tạo'] || ''}</div>
+                    <div>${item['Phân tích kỹ hơn cấu tạo'] || ''}</div>
                 </div>
-
+ 
                 <div class="total-strokes">TỔNG CỘNG: ${item['Tổng số nét'] || '0'} NÉT</div>
 
                 <div class="mnemonic-grid">
@@ -334,4 +340,5 @@
 </script>
 </body>
 </html>
+
 

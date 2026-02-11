@@ -204,13 +204,11 @@
                     <img class="mnemonic-img" src="${item['Ảnh minh họa đã chọn'] || ''}" onerror="this.src='https://i.postimg.cc/d3VVgr6y/image.png'">
                 </div>
 
-                <div class="section-title">✍️ Thứ tự nét viết 
-                     <button class="nav-btn" style="font-size:14px" onclick="resetStrokes(${index})">🔄 Replay</button>
+                <div class="section-title">✍️ Thứ tự nét viết
+                    <button class="nav-btn" style="font-size:14px; color:var(--primary);" onpointerdown="resetStrokes()">🔄 Replay</button>
                 </div>
-            
-                <div class="stroke-grid" id="stroke-grid-${index}">
-                        ${strokesHtml}
-                </div>
+                
+                <div class="stroke-grid">${strokesHtml}</div>
                 
                 <div class="section-title">📚 Từ vựng mở rộng</div>
                 <div style="background:white; padding:15px; border-radius:15px;">${vocabHtml}</div>
@@ -220,20 +218,26 @@
         updateDots();
     }
 
-    function resetStrokes(cardIndex) {
-        const grid = document.getElementById(`stroke-grid-${cardIndex}`);
+    function resetStrokes() {
+        // Tìm grid của card hiện tại đang hiển thị
+        const grid = document.querySelector('.stroke-grid');
         if (!grid) return;
 
-        //CHỈ chọn SVG stroke
+        // Lấy tất cả ảnh nét vẽ
         const imgs = grid.querySelectorAll('img.stroke-item');
 
         imgs.forEach(img => {
-            const url = img.src;
-            img.removeAttribute('src');
+            // Lấy URL gốc (loại bỏ các tham số ?t= cũ nếu có)
+            const originalSrc = img.src.split('?')[0];
+        
+            // 1. Xóa src để giải phóng RAM và dừng animation cũ
+            img.src = ""; 
 
+            // 2. Sử dụng requestAnimationFrame để đảm bảo trình duyệt 
+            // đã thực sự xóa ảnh cũ trước khi nạp lại ảnh mới
             requestAnimationFrame(() => {
-                // bust cache để SVG chạy lại animation
-                img.src = url.split('?')[0] + '?t=' + Date.now();
+                // Thêm timestamp để ép trình duyệt chạy lại animation từ đầu
+                img.src = originalSrc + '?t=' + Date.now();
             });
         });
     }
@@ -293,5 +297,6 @@
 </script>
 </body>
 </html>
+
 
 

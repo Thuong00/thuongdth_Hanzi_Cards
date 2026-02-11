@@ -9,9 +9,9 @@
         :root {
             --bg-color: #f8f9fa;
             --text-main: #2d3436;
-            --grad-queue: linear-gradient(to right, #d7d2cc 0%, #304352 100%);
-            --grad-ready: linear-gradient(135deg, #FFE29F 0%, #FFA99F 48%, #FF719A 100%);
-            --grad-mastered: linear-gradient(135deg, #69EACB 0%, #EACCF8 48%, #6654F1 100%);
+            --grad-queue: linear-gradient(-135deg, #d7d2cc 0%, #304352 100%);
+            --grad-ready: linear-gradient(-135deg, #ff8177 0%, #ff867a 0%, #ff8c7f 21%, #f99185 52%, #cf556c 78%, #b12a5b 100%);
+            --grad-mastered: linear-gradient(135deg, #002b99 0%, #00ecbc 100%);
         }
 
         body {
@@ -90,7 +90,7 @@
         .btn-icon {
             width: 30px;
             height: 30px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.05);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -106,7 +106,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
             transform: rotate(45deg);
             transition: 0.5s;
         }

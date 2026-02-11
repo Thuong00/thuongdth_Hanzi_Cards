@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Menu Hanzi Flashcard</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f2f2f7;
+            font-family: sans-serif;
+        }
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 80%;
+            max-width: 300px;
+        }
+        .menu-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .menu-btn:active { transform: scale(0.95); }
+        .bg-queue { background-color: #ff9f43; }
+        .bg-ready { background-color: #00a86b; }
+        .bg-mastered { background-color: #1a5fb4; }
+    </style>
+</head>
+<body>
+
+    <h2 style="color: #2c3e50;">Chọn trạng thái học</h2>
+    <div class="menu-container">
+        <a href="flashcard.html?status=Queue" class="menu-btn bg-queue">Queue</a>
+        <a href="flashcard.html?status=Ready" class="menu-btn bg-ready">Ready</a>
+        <a href="flashcard.html?status=Mastered" class="menu-btn bg-mastered">Mastered</a>
+    </div>
+
+</body>
+</html>

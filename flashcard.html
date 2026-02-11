@@ -128,10 +128,12 @@
             complete: function(results) {
                 // Lọc dữ liệu
                 allData = results.data.filter(item => item['Status']?.trim() === selectedStatus);
-              
-                // ĐẢO NGẪU NHIÊN
-                shuffleArray(allData);
-              
+
+                if (selectedStatus === 'Ready' && allData.length > 0) {
+                    // ĐẢO NGẪU NHIÊN
+                    shuffleArray(allData);
+                }
+                
                 // GIẢI PHÓNG BỘ NHỚ: Xóa kết quả gốc của PapaParse
                 results = null; 
 

@@ -353,13 +353,13 @@
         utterCN.onend = () => {
             setTimeout(() => {
                 window.speechSynthesis.speak(utterVI);
-            }, 1000);
+            }, 300);
         };
 
         utterVI.onend = () => {
             setTimeout(() => {
                 window.speechSynthesis.speak(utterEN);
-            }, 1000);
+            }, 300);
         };
 
         // Bắt đầu phát tiếng Trung đầu tiên

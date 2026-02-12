@@ -333,37 +333,47 @@
     }
 
     function speak_all(cn, vi, en) {
-        // Hủy các yêu cầu cũ để tránh bị lag
         window.speechSynthesis.cancel();
 
-        // 1. Tiếng Trung
-        const utterCN = new SpeechSynthesisUtterance(cn);
-        utterCN.lang = 'zh-CN';
-
-        // 2. Tiếng Việt
-        const utterVI = new SpeechSynthesisUtterance(vi);
-        utterVI.lang = 'vi-VN';
-
-        // 3. Tiếng Anh (Xử lý dấu / như bạn đã làm)
-        const utterEN = new SpeechSynthesisUtterance(en.replace(/\//g, ','));
-        utterEN.lang = 'en-US';
-
-        // Thiết lập thứ tự: Trung xong đến Việt, Việt xong đến Anh
-        // Xử lý trình tự kèm khoảng nghỉ 1000ms (1 giây)
-        utterCN.onend = () => {
-            setTimeout(() => {
-                window.speechSynthesis.speak(utterVI);
-            }, 300);
+        // Hàm phụ để tạo lượt đọc
+        const createUtterance = (text, lang) => {
+            const utter = new SpeechSynthesisUtterance(text.replace(/\//g, ','));
+            utter.lang = lang;
+            return utter;
         };
 
-        utterVI.onend = () => {
-            setTimeout(() => {
-                window.speechSynthesis.speak(utterEN);
-            }, 300);
+        // Hàm thực hiện việc đọc lặp lại
+        const speakLoop = (text, lang, times, callback) => {
+            let count = 0;
+
+            const run = () => {
+                if (count < times) {
+                    const utter = createUtterance(text, lang);
+                    utter.onend = () => {
+                        count++;
+                        if (count < times) {
+                            // Nghỉ 300ms giữa các lần lặp cùng ngôn ngữ
+                            setTimeout(run, 300);
+                        } else if (callback) {
+                            // Nghỉ 1000ms (1 giây) khi chuyển sang ngôn ngữ khác
+                            setTimeout(callback, 1000);
+                        }
+                    };
+                    window.speechSynthesis.speak(utter);
+                }
+            };
+            run();
         };
 
-        // Bắt đầu phát tiếng Trung đầu tiên
-        window.speechSynthesis.speak(utterCN);;
+        // Bắt đầu chuỗi trình tự:
+        // 1. Tiếng Trung (3 lần) -> sau đó:
+        // 2. Tiếng Việt (1 lần) -> sau đó:
+        // 3. Tiếng Anh (2 lần)
+        speakLoop(cn, 'zh-CN', 3, () => {
+            speakLoop(vi, 'vi-VN', 1, () => {
+                speakLoop(en, 'en-US', 2);
+            });
+        });
     }
     
     init();

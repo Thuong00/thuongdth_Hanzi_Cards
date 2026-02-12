@@ -51,7 +51,11 @@
         /* Các style giữ nguyên từ bản gốc của bạn */
         .header-section { background: white; border: 2px solid var(--primary); border-radius: 20px; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .big-char { font-size: 80px; font-weight: bold; margin: 0; line-height: 1; }
-        .info-top { text-align: right; flex: 1; }
+        .info-top { text-align: left; flex: 1; display: flex;
+                    flex-direction: column; /* Xếp các dòng theo chiều dọc */
+                    align-items: flex-start; /* Căn tất cả nội dung sang lề trái */
+                    gap: 5px;                /* Khoảng cách giữa các dòng cho thoáng */
+                    width: 100%;}
         .pinyin-box { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
         .pinyin-tag { background: #34495e; color: white; padding: 2px 10px; border-radius: 10px; font-size: 11px; }
         .pinyin-text { font-size: 24px; color: var(--primary); font-weight: bold; }
